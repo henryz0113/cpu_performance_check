@@ -91,4 +91,57 @@ Also the script will check after 5 minutes again once the configuration is set. 
 
 In that case make sure to run the script once again. 
 
+# MTR-Tool
 
+I. Objective of the tool
+
+The objective of the tool is to get bi-directional MTR. Bi-directional MTR is getting MTR result from the troubled machine to the Monitoring machine. 
+
+The purpose is to see where the problem is but mainly it is to provide this result to the Datacenter (DC). 
+
+Many DCs tend to ask for bi-directional MTR result as to investigate further to see if they are the problem or their upstream providers are the culprit. 
+
+Therefore we need to provide them once we see an outage - High latency / High Ping Loss. 
+
+II. How to use the tool
+
+
+If you forget on how to use the tool, just simply execute the shell script ./scripts/utils/linux/mtr-tool -h
+
+Machine IP and the Monitor Machine of the Monitoring machines - or simply search it from Zabbix Tool (*.mon)
+
+You will get the result as below.
+
+**REMEMBER the locations have their own IDs for this script as mentioned in the how to use. 
+
+
+If you have all the correct variables set it will work as below
+Just be informed it takes time to load the result coming from each side so give it a 30s.
+
+Example) henryle@jumpbox-1:~$ ./mtr-tool  129.227.187.30 SIG
+
+
+III. Options you can use in the tool
+
+ As also explained within the tool there are 4 Options you can use. 
+
+By giving the option at the every end of the script indicates which Option you would like to use. 
+
+As you can see in below box
+
+-h, --help HELP!!!
+-U  use UDP instead of ICMP echo
+-T  use TCP instead of ICMP echo
+
+
+-U Option is used when you need to measure Bi directional MTR result for UDP. 
+-T Option is used when you need to measure Bi directional MTR result for TCP. 
+
+
+IV. Expected Error Messages
+
+If you see ssh is not possible, that indicates that the machine is unreachable.
+ssh: connect to host 107.6.176.130 port 22: Connection timed out
+Trying pinging that machine to double check if the machine is reachable. - Most likely they are unreachable by ping and ssh. 
+
+If that's the case, raise a ticket to the Datacenter
