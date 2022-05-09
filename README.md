@@ -9,13 +9,18 @@ In order to execute the script please provide the IP and run the script as below
 From this result we can say the below
 
 1.CPU Frequency is Normal 
+
 2.There are not much information from the dmsg log. 
+
 3.Netstat and Segment Re-transmitted rate looks to be fine
+
 4.Turbo Mode is enabled 
+
 5.C-State is enabled. 
 
 
 **Options you can use in the tool**
+
 As also explained within the tool there are 8 Options you can use. 
 By giving the option at the every end of the script indicates which Option you would like to use. 
 As you can see in below box
