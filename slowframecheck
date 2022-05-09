@@ -1,0 +1,347 @@
+#!/bin/bash
+#Slow Frame Check - Bash Script
+#contact henry.lee@unity3d.com for editing the script
+#contributors Zoey P. / Juan G. / Jay J. / Nash I. / DK L. / Travis A.
+#Version 1.2.5
+
+##Setting variable##
+SSH_ARGS="-o StrictHostKeyChecking=no -o ConnectTimeout=10"
+SH="ssh $SSH_ARGS"
+SH_HOST="root@${1}"
+IP=${1}
+Green='\033[0;32m'
+Yellow='\033[1;33m'
+Red='\033[1;31m'
+NC='\033[0m'
+opt=${2}
+
+##Code begins here##
+
+#Main condition
+
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "[I] LOOK BELOW FOR HOW TO USE"
+        echo "./slowframecheck IP_Adress Option"
+        echo " "
+        echo "Default is running all commands"
+        echo " -h, --help HELP!!!"
+        echo " "
+        echo " -d  Checking dmsge Only"
+        echo " -f  Checking Frequnecy Only"
+        echo " -n  Checking Netstat Only"
+        echo " -t  Checking Turbo Only"
+        echo " -T  Checking Temperature Only"
+        echo " -C  Checking C-State Only"
+        echo " -y  Checking Hyperthreading Only"
+        echo " "
+        exit 255
+fi
+
+if [[ ! "$IP" =~ (([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5]))$ ]]; then
+        printf $Red"Please insert correct IP format 8.8.8.8"$NC
+        echo " "
+        printf $Yellow"Please type -h or --help to see how it works"$NC
+        echo " "
+        exit 255
+fi
+
+##Main Functions
+
+fre_check()
+{
+        #Check CPU Frequency
+        count=`$SH $SH_HOST "cat /proc/cpuinfo | grep 'physical id' | sort -u |wc -l"`
+             if [ $count -gt 1 ]; then
+                freq=`$SH $SH_HOST "cpupower monitor -m Mperf | awk 'NR>2 {sum += "'$6'"; count++} END {printf "'"'"%.0f"'"'", sum / count}'"`
+             else
+                freq=`$SH $SH_HOST "cpupower monitor -m Mperf | awk 'NR>2 {sum += "'$4'"; count++} END {printf "'"'"%.0f"'"'", sum / count}'"`
+             fi
+        if [ "$freq" = "" ]; then
+             echo "unknown frequency"
+        else
+            val=`awk 'BEGIN{print ('"$freq"' <= 3000)}'`
+                 if [ $val -eq 1 ];then
+                     printf "${IP} ${Red}Low Frequency${NC}"
+                     echo " Warning : Frequency is ${freq}"
+                     status="1"
+                 else
+                     printf "${IP} ${Green}Normal Frequency${NC}"
+                     status="0"
+        fi
+fi
+}
+
+#Check Temp
+temp_check()
+{
+        get_temp=`$SH $SH_HOST "sensors coretemp-isa-0000 | grep "+" | cut -d ":" -f2 "`
+        sort_temp=`echo "$get_temp" | awk '{print $1}' | cut -d "." -f1`
+        printf $Yellow
+        echo $sort_temp
+        printf $NC
+}
+
+
+#Check CPU Type
+cpu_check()
+{
+        cpu=`$SH $SH_HOST "cat /proc/cpuinfo |grep 'model name' | head -n 1 | awk -F: '{print "'$2'"}'"`
+        if [ "$cpu" = "" ]; then
+            echo "unknown cpu model"
+        else
+                echo "cpu :${cpu}"
+        fi
+        if [ 1 -ne `echo $cpu |grep -cE '(E3|E-)'` ]; then
+        perf_issue "unexpected cpu ($cpu)!"
+        fi
+}
+
+#Check dmesg
+dmsg1_check()
+{
+        dmsg1=`$SH $SH_HOST "dmesg -l err -T"`
+        if [ -z "$dmsg1" ]; then
+                #printf "[${Green}No Error dmesg -l err${NC}]"
+                check1=`echo " " > /dev/null`
+        else
+                echo " "
+                echo "dmesg -l err"
+                printf $Yellow
+                echo "$dmsg1"
+                printf $NC
+        fi
+}
+
+
+dmsg2_check()
+{
+        dmsg2=`$SH $SH_HOST "dmesg | grep MC0 -T"`
+        if [ -z "$dmsg2" ]; then
+                #printf "[${Green}No Error dmesg | grep MC0${NC}]"
+                check2=`echo " " > /dev/null`
+        else
+                printf $Yellow
+                sortdmsg2=`echo "$dmsg2" | grep -v 'Giving out device'`
+                if [ -z "$sortdmsg2" ]; then
+                        #printf "[${Green}No Error dmesg | grep MC0${NC}]"
+                        echo " " > /dev/null
+                        printf $NC
+                else
+                    echo " "
+                    echo "dmesg | grep MC0"
+                    printf $Yellow
+                    echo "$sortdmsg2"
+                    printf $NC
+                fi
+        fi
+}
+
+dmsg3_check()
+{
+        dmsg3=`$SH $SH_HOST "dmesg -T | grep error"`
+        if [ -z "$dmsg3" ]; then
+                #printf "[${Green}No Error dmesg | grep error${NC}]"
+                check3=`echo " " > /dev/null`
+        else
+                sortdmsg3=`echo "$dmsg3" | grep -v 'Enabling Firmware First' | grep -v 're-mounted'`
+                if [ -z "$sortdmsg3" ];then
+                        #printf "[${Green}No Error dmesg | grep error${NC}]"
+                        echo " " > /dev/null
+                        printf $NC
+                else
+                    echo " "
+                    echo "dmesg | grep error"
+                    printf $Yellow
+                    echo "$sortdmsg3"
+                    printf $NC
+                fi
+        fi
+}
+
+
+#Check Network Tran
+net1_check()
+{
+        printf $NC
+        net1=`$SH $SH_HOST "netstat -s | grep bad"`
+        if [ -z "$net1" ]; then
+                echo " "
+                printf "[${Green}No Error netstat -s | grep bad${NC}]"
+                echo " "
+        else
+                echo " "
+                echo "netstat -s | grep bad"
+                printf $Red
+                echo $net1
+                printf $NC
+        fi
+}
+
+net2_check()
+{
+        seg_ret=`$SH $SH_HOST "netstat -s | grep 'segments retr' | awk '{print $1}'"`
+        seg_sout=`$SH $SH_HOST "netstat -s | grep 'segments sent out' | awk '{print $1}'"`
+        #Calculate seg_ret / set_sout
+        sort1=`echo $seg_ret |  awk '{print $1}'`
+        sort2=`echo $seg_sout | awk '{print $1}'`
+        outcal=`echo "scale=4; $sort1/$sort2" | bc -l`
+        echo " "
+        printf "${IP} Segment Retransmitted rate $sort1/$sort2=${Yellow}[${outcal}]${NC} - if above 0.1 raise it to DC"
+        echo " "
+        echo " "
+}
+
+#Turbo Mode Check
+turbo_check()
+{
+        cores=$(cat /proc/cpuinfo | grep processor | awk '{print $3}')
+        state=$(for core in $cores; do
+                turb=`$SH $SH_HOST "rdmsr -p${core} 0x1a0 -f 38:38 2> /dev/null"`
+                if [ ! $? ==  0 ];then
+                     apt=`$SH $SH_HOST "apt install msr-tools -y 2> /dev/null"`
+                     turb=`$SH $SH_HOST "rdmsr -p${core} 0x1a0 -f 38:38"`
+                fi
+                if [ "$turb" == 1 ];then
+                    echo "1"
+                else
+                    echo "0 "
+                fi
+        done 2> /dev/null )
+        if [[ "$state" == *"1"* ]];then
+                printf "[${IP} ${Red}Turbo Mode NOT enabled${NC}]"
+                echo " "
+                echo " "
+        else
+                printf "[${IP} ${Green}Turbo Mode enabled${NC}]"
+                echo " "
+                echo " "
+        fi
+}
+
+#C-state Check
+c_state_check()
+{
+        c_gov=`$SH $SH_HOST "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"`
+        c_state=`$SH $SH_HOST "cat /sys/module/intel_idle/parameters/max_cstate"`
+        if [ "$c_state" == 0 ];then
+                printf "${IP}${Green} C-State Disabled${NC} ${c_gov}"
+                echo " "
+                echo " "
+        else
+                printf "${IP}${Red} C-State Enabled - Must be Disabled ${NC} - Gov:${c_gov}"
+                echo " "
+                echo " "
+        fi
+
+
+}
+
+#Hyper Threading Check
+hyper_thread_check()
+{
+        thread=`$SH $SH_HOST "dmidecode -t processor | grep Count"`
+        core_count=`echo "$thread" | grep 'Core Count' | awk '{print $3}'`
+        thread_count=`echo "$thread" | grep 'Thread Count' | awk '{print $3}'`
+        if [ "$core_count" == "$thread_count" ];then
+                printf "${Red}Hyper Threading Disabled${NC}"
+                echo " "
+                echo " "
+        else
+                printf "${Green}Hyper Threading Enabled${NC}"
+                echo " "
+        fi
+
+
+}
+
+#Excuteing per options
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "[I] LOOK BELOW FOR HOW TO USE"
+        echo "./beta IP_Adress Option"
+        echo " "
+        echo "Default is running all commands"
+        echo " -f  Running Frequnecy Only"
+        echo " -d  Runniny dmsge Only"
+        echo " -n  Running Netstat  Only"
+        echo " "
+        exit 255
+fi
+
+
+#Default is running all commands
+if [ -z "$opt" ]; then
+        echo "[ ${IP} ]"
+        fre_check
+        if [ $status -eq 0 ]; then
+                echo " "
+                dmsg1_check
+                dmsg2_check
+                dmsg3_check
+                net1_check
+                net2_check
+                turbo_check
+                c_state_check
+                echo " "
+        else
+                cpu_check
+                dmsg1_check
+                dmsg2_check
+                dmsg3_check
+                net1_check
+                net2_check
+                turbo_check
+                c_state_check
+                echo " "
+        fi
+fi
+
+
+# Running Frequency Only Option
+
+if [ "$opt" == "-f" ]; then
+        fre_check
+        if [ $status -eq 0 ]; then
+                echo " "
+        else
+                cpu_check
+                echo " "
+        fi
+fi
+
+
+if [ "$opt" == "-d" ]; then
+        echo "[ ${IP} ]"
+        dmsg1_check
+        dmsg2_check
+        dmsg3_check
+        echo " "
+fi
+
+if [ "$opt" == "-n" ]; then
+        echo "[ ${IP} ]"
+        net1_check
+        net2_check
+        echo " "
+fi
+
+if [ "$opt" == "-t" ]; then
+        turbo_check
+        echo " "
+fi
+
+if [ "$opt" == "-T" ]; then
+        echo "[ ${IP} ]"
+        temp_check
+        echo " "
+fi
+
+if [ "$opt" == "-C" ]; then
+        c_state_check
+        echo " "
+fi
+
+if [ "$opt" == "-y" ]; then
+        echo "[ ${IP} ]"
+        hyper_thread_check
+        echo " "
+fi
