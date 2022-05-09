@@ -1,0 +1,73 @@
+#!/bin/bash
+#C-State Disable - Bash Script
+#contact henry.lee@unity3d.com for editing the script
+#Version 1.0.1
+
+##Setting variable##
+SSH_ARGS="-o StrictHostKeyChecking=no -o ConnectTimeout=10"
+SH="ssh $SSH_ARGS"
+SH_HOST="root@${1}"
+IP=${1}
+Green='\033[0;32m'
+Yellow='\033[1;33m'
+Red='\033[1;31m'
+NC='\033[0m'
+opt=${2}
+
+
+#Main condition
+
+ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+         echo "[I] LOOK BELOW FOR HOW TO USE"
+         printf "${Red}Warning - do not run this script if you do not what you are doing!${NC}"
+         echo " "
+         printf "EX) ${Yellow}./scripts/utils/linux/c-state-disable IP_Adress${NC}"
+         echo " "
+         echo " "
+         echo "If you wish to check C-state status"
+         printf "use ${Yellow}Slowframecheck${NC} script with ${Green}-C${NC} option"
+         echo " "
+         echo " "
+         exit 255
+fi
+
+if [[ ! "$IP" =~ (([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5]))$ ]]; then
+        printf $Red"Please insert correct IP format 8.8.8.8"$NC
+        echo " "
+        printf $Yellow"Please type -h or --help to see how it works"$NC
+        echo " "
+        exit 255
+fi
+
+
+#Main Code
+c_state_check()
+{
+        c_gov=`$SH $SH_HOST "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"`
+        c_state=`$SH $SH_HOST "cat /sys/module/intel_idle/parameters/max_cstate"`
+        path=/etc/default/grub
+        if [ "$c_state" == 0 ];then
+                printf "${IP}${Green} C-State Disabled${NC}"
+                echo " "
+        else
+                edit1=`$SH $SH_HOST "sed -i 's/GRUB_CMDLINE_LINUX=\"/GRUB_CMDLINE_LINUX=\"intel_pstate=disable intel_idle.max_cstate=0 /' ${path}"`
+                edit2=`$SH $SH_HOST "sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=\"/GRUB_CMDLINE_LINUX_DEFAULT=\"intel_pstate=disable intel_idle.max_cstate=0 /' ${path}"`
+                $SH $SH_HOST update-grub 2> /dev/null
+                $SH $SH_HOST reboot 2> /dev/null
+                sleep 300
+                c2_state=`$SH $SH_HOST "cat /sys/module/intel_idle/parameters/max_cstate"`
+                if [ "$c2_state" == 0 ];then
+                        printf "${IP}${Green} C-State Disabled${NC}"
+                        echo " "
+                else
+                        printf "${IP}${Red} C-State Enabled - Must be Disabled ${NC}${c_gov}"
+                        echo " "
+                fi
+                echo " "
+        fi
+
+
+}
+
+
+c_state_check
