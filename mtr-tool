@@ -1,7 +1,36 @@
 #!/bin/bash
-#This script is created to get bi-directional MTR from our machine to monitoring box
-#Made by henry.lee@unity3d.com
-#Version 2.0.1
+#========================================================================
+# M T R - T O O L
+#========================================================================
+#SYNOPSIS
+#       ./mtr-tool ${IP} [OPTIONS]
+#
+#DESCRIPTION
+#      MTR-Tool - Bash Script
+#      https://confluence.unity3d.com/x/fregCQ
+#
+#OPTIONS
+#      Default is running standard MTR
+#      -h, --help HELP!!!
+#      -U  use UDP instead of ICMP echo
+#      -T  use TCP instead of ICMP echo
+#
+#========================================================================
+#- IMPLEMENTATION
+#-    version         MTR-Tool 2.0.1
+#-    code            Bash Script
+#-    author          Henry Lee - Team Korea - DSE
+#-    copyright       Copyright (c) Unity Multiplay DSE Team
+#-    contributor     DK L.
+#========================================================================
+# History
+#    2021-12-01 Deployed by Henry Lee
+#    2022-06-23 Henry Lee to hand over the script to DK Lim.
+#               Contact dk.lim@unity3d.com for editing the script.
+#
+#========================================================================
+# M T R - T O O L
+#========================================================================
 
 ##Setting variable##
 SSH_ARGS="-o StrictHostKeyChecking=no -o ConnectTimeout=10"
@@ -75,21 +104,21 @@ fi
 ##Main Function
 
 #Setting Monioring box IP
-if [ "${mbox}" == "DAL" ]; then
+if [[ "${mbox}" == "DAL" || "${mbox}" == "dal" ]]; then
    monip="142.0.204.76"
-elif [ "${mbox}" == "AMS" ]; then
+elif [[ "${mbox}" == "AMS" || "${mbox}" == "ams" ]]; then
    monip="172.255.235.68"
-elif [ "${mbox}" == "MOS" ]; then
+elif [[ "${mbox}" == "MOS" || "${mbox}" == "mos" ]]; then
     monip="88.212.242.156"
-elif [ "${mbox}" == "SIG" ]; then
+elif [[ "${mbox}" == "SIG" || "${mbox}" == "sig" ]]; then
     monip="103.23.210.188"
-elif [ "${mbox}" == "SJ" ]; then
+elif [[ "${mbox}" == "SJ" || "${mbox}" == "sj" ]]; then
     monip="209.191.164.177"
-elif [ "${mbox}" == "SYD" ]; then
+elif [[ "${mbox}" == "SYD" || "${mbox}" == "syd" ]]; then
     monip="135.90.89.184"
-elif [ "${mbox}" == "SP" ]; then
+elif [[ "${mbox}" == "SP" || "${mbox}" == "sp" ]]; then
     monip="169.57.142.117"
-elif [ "${mbox}" == "WDC" ]; then
+elif [[ "${mbox}" == "WDC" || "${mbox}" == "wdc" ]]; then
     monip="66.242.12.70"
 elif [ "${mbox}" == "zbx-proxy-asia-east2-c" ]; then
     monip="34.96.175.93"
