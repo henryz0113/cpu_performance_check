@@ -1,9 +1,35 @@
 #!/bin/bash
-#C-State Disable - Bash Script
-#Script written by Henry Lee
-#contact dk.lim@unity3d.com for editing the script
-#Contributor DK.L
-#Version 1.1.7
+#========================================================================
+# C - S T A T E - D I S A B L E
+#========================================================================
+#SYNOPSIS
+#       ./c-state-disable ${IP} [-m]
+#
+#DESCRIPTION
+#      C-State-Disable - Bash Script
+#      https://confluence.unity3d.com/display/CloudCS/C-state-disable+Tool
+#
+#OPTIONS
+#      Default is running single IP
+#       -h, --help HELP!!!
+#       -m  Running Multiple IPs
+#       -v  Checking Status for Multiple IPs [Hidden]
+#
+#========================================================================
+#- IMPLEMENTATION
+#-    version         c-state-disable 1.1.7
+#-    code            Bash Script
+#-    author          Henry Lee - Team Korea - DSE
+#-    copyright       Copyright (c) Unity Multiplay DSE Team
+#-    contributor     DK L.
+#========================================================================
+# History
+#    2022-06-23 Henry Lee to hand over the script to DK Lim.
+#               Contact unity3d.com for editing the script.
+#
+#========================================================================
+# C - S T A T E - D I S A B L E
+#========================================================================
 
 ##Setting variable##
 SSH_ARGS="-o StrictHostKeyChecking=no -o ConnectTimeout=10"
