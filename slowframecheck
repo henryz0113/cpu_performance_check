@@ -1,9 +1,39 @@
 #!/bin/bash
-#Slow Frame Check - Bash Script
-#Script Written by Henry Lee
-#contact zoey.park@unity3d.com and jay.jin@unity3d.com for editing the script
-#contributors Zoey P. / Juan G. / Jay J. / Nash I. / DK L. / Travis A.
-#Version 1.2.6
+#========================================================================
+# S L O W F R A M E C H E C K
+#========================================================================
+#SYNOPSIS
+#       ./slowframecheck ${IP} ${OPTION}
+#
+#DESCRIPTION
+#      Slow Frame Check - Bash Script
+#      https://confluence.unity3d.com/x/Fh0UCw
+#
+#OPTIONS
+#      Default is running all commands
+#       -h, --help HELP!!!
+#       -d  Checking dmsge Only
+#       -f  Checking Frequnecy Only
+#       -n  Checking Netstat Only
+#       -t  Checking Turbo Only
+#       -T  Checking Temperature Only
+#       -C  Checking C-State Only
+#       -y  Checking Hyperthreading Only
+#========================================================================
+#- IMPLEMENTATION
+#-    version         Slowframecheck 1.2.6
+#-    code            Bash Script
+#-    author          Henry Lee - Team Korea - DSE
+#-    copyright       Copyright (c) Unity Multiplay DSE Team
+#-    contributor     Zoey P.|Juan G.|Jay J.|Nash I.|DK L.|Travis A.
+#========================================================================
+# History
+#    2022-06-25 Henry Lee to hand over the script to Zoey P and Jay
+#               Contact zoey.park@unity3d.com and jay.jin@unity3d.com
+#               for editing the script.
+#========================================================================
+# S L O W F R A M E C H E C K
+#========================================================================
 
 ##Setting variable##
 SSH_ARGS="-o StrictHostKeyChecking=no -o ConnectTimeout=10"
@@ -42,7 +72,7 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         exit 255
 fi
 
-if [[ ! "$IP" =~ (([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5]))$ ]]; then
+if [[ ! "$IP" =~ (([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5]))$ ]]; then
         printf $Red"Please insert correct IP format 8.8.8.8"$NC
         echo " "
         printf $Yellow"Please type -h or --help to see how it works"$NC
@@ -57,9 +87,9 @@ fre_check()
         #Check CPU Frequency
         count=`$SH $SH_HOST "cat /proc/cpuinfo | grep 'physical id' | sort -u |wc -l"`
              if [ $count -gt 1 ]; then
-                freq=`$SH $SH_HOST "cpupower monitor -m Mperf | awk 'NR>2 {sum += "'$6'"; count++} END {printf "'"'"%.0f"', sum / count}'"`
+                freq=`$SH $SH_HOST "cpupower monitor -m Mperf | awk 'NR>2 {sum += "'$6'"; count++} END {printf "'"'"%.0f"'"'", sum / count}'"`
              else
-                freq=`$SH $SH_HOST "cpupower monitor -m Mperf | awk 'NR>2 {sum += "'$4'"; count++} END {printf "'"'"%.0f"', sum / count}'"`
+                freq=`$SH $SH_HOST "cpupower monitor -m Mperf | awk 'NR>2 {sum += "'$4'"; count++} END {printf "'"'"%.0f"'"'", sum / count}'"`
              fi
         if [ "$freq" = "" ]; then
              echo "unknown frequency"
