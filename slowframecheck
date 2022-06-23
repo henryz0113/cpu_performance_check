@@ -1,8 +1,9 @@
 #!/bin/bash
 #Slow Frame Check - Bash Script
-#contact henry.lee@unity3d.com for editing the script
+#Script Written by Henry Lee
+#contact zoey.park@unity3d.com and jay.jin@unity3d.com for editing the script
 #contributors Zoey P. / Juan G. / Jay J. / Nash I. / DK L. / Travis A.
-#Version 1.2.5
+#Version 1.2.6
 
 ##Setting variable##
 SSH_ARGS="-o StrictHostKeyChecking=no -o ConnectTimeout=10"
@@ -14,6 +15,10 @@ Yellow='\033[1;33m'
 Red='\033[1;31m'
 NC='\033[0m'
 opt=${2}
+day=`date | awk '{print $3}'`
+month=`date | awk '{print $2}'`
+host=`who am i | awk '{print $1}'`
+dir="/home/${host}"
 
 ##Code begins here##
 
@@ -37,7 +42,7 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         exit 255
 fi
 
-if [[ ! "$IP" =~ (([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5]))$ ]]; then
+if [[ ! "$IP" =~ (([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|-4][0-9]|25[0-5])\.([01]{,1}[0-9]{1,2}|2[0-4][0-9]|25[0-5]))$ ]]; then
         printf $Red"Please insert correct IP format 8.8.8.8"$NC
         echo " "
         printf $Yellow"Please type -h or --help to see how it works"$NC
@@ -52,9 +57,9 @@ fre_check()
         #Check CPU Frequency
         count=`$SH $SH_HOST "cat /proc/cpuinfo | grep 'physical id' | sort -u |wc -l"`
              if [ $count -gt 1 ]; then
-                freq=`$SH $SH_HOST "cpupower monitor -m Mperf | awk 'NR>2 {sum += "'$6'"; count++} END {printf "'"'"%.0f"'"'", sum / count}'"`
+                freq=`$SH $SH_HOST "cpupower monitor -m Mperf | awk 'NR>2 {sum += "'$6'"; count++} END {printf "'"'"%.0f"', sum / count}'"`
              else
-                freq=`$SH $SH_HOST "cpupower monitor -m Mperf | awk 'NR>2 {sum += "'$4'"; count++} END {printf "'"'"%.0f"'"'", sum / count}'"`
+                freq=`$SH $SH_HOST "cpupower monitor -m Mperf | awk 'NR>2 {sum += "'$4'"; count++} END {printf "'"'"%.0f"', sum / count}'"`
              fi
         if [ "$freq" = "" ]; then
              echo "unknown frequency"
@@ -208,11 +213,11 @@ turbo_check()
                 fi
         done 2> /dev/null )
         if [[ "$state" == *"1"* ]];then
-                printf "[${IP} ${Red}Turbo Mode NOT enabled${NC}]"
+                printf "${IP} ${Red}Turbo Mode NOT enabled${NC}"
                 echo " "
                 echo " "
         else
-                printf "[${IP} ${Green}Turbo Mode enabled${NC}]"
+                printf "${IP} ${Green}Turbo Mode enabled${NC}"
                 echo " "
                 echo " "
         fi
@@ -253,20 +258,6 @@ hyper_thread_check()
 
 
 }
-
-#Excuteing per options
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-        echo "[I] LOOK BELOW FOR HOW TO USE"
-        echo "./beta IP_Adress Option"
-        echo " "
-        echo "Default is running all commands"
-        echo " -f  Running Frequnecy Only"
-        echo " -d  Runniny dmsge Only"
-        echo " -n  Running Netstat  Only"
-        echo " "
-        exit 255
-fi
-
 
 #Default is running all commands
 if [ -z "$opt" ]; then
@@ -326,22 +317,24 @@ fi
 
 if [ "$opt" == "-t" ]; then
         turbo_check
-        echo " "
 fi
 
 if [ "$opt" == "-T" ]; then
         echo "[ ${IP} ]"
         temp_check
-        echo " "
 fi
 
 if [ "$opt" == "-C" ]; then
         c_state_check
-        echo " "
 fi
 
 if [ "$opt" == "-y" ]; then
         echo "[ ${IP} ]"
         hyper_thread_check
         echo " "
+fi
+
+
+if [ "$opt" == "-v" ]; then
+        c_state_check >> ${dir}/C-state-${month}-${day}-validate &
 fi
